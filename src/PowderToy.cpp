@@ -32,6 +32,7 @@
 #include <SDL.h>
 #include <exception>
 #include <cstdlib>
+#include "simulation/Audio.h"
 
 void LoadWindowPosition()
 {
@@ -243,6 +244,35 @@ struct ExplicitSingletons
 };
 static std::unique_ptr<ExplicitSingletons> explicitSingletons;
 
+unsigned long long audt = 0;
+
+bool soundEnabled = true;
+double sndfreq[SND_MAX] = {};
+unsigned long long sndtime[SND_MAX] = {};
+bool pauseAudio = false;
+
+void audioCallback(void *userdata, Uint8 *stream, int len)
+{
+	// Audio callback is writing to audt and only reading from the sounds
+	Sint16 *buffer = (Sint16 *)stream;
+	int samples = len / 2; // Each sample is 2 bytes (16-bit audio)
+
+	for (int i = 0; i < samples; ++i)
+	{
+		double curtime = audt/44100.0;
+		int cval = 0;
+		for (size_t sn = 0; sn<SND_MAX; sn++)
+		{
+			if (sndtime[sn]>audt){
+				int volume = std::min(sndtime[sn]-audt, 5000ULL)*2;
+				cval += sin(sndfreq[sn] * curtime * 2 * M_PI) * volume;
+			}
+		}
+		buffer[i] = (Sint16)(std::clamp(cval, -32768, 32767));
+		audt++;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	Platform::SetupCrt();
@@ -265,11 +295,27 @@ int Main(int argc, char *argv[])
 
 
 	// https://bugzilla.libsdl.org/show_bug.cgi?id=3796
-	if (SDL_Init(0) < 0)
+	if (SDL_Init(SDL_INIT_AUDIO) < 0)
 	{
 		fprintf(stderr, "Initializing SDL: %s\n", SDL_GetError());
 		return 1;
 	}
+
+	SDL_AudioSpec spec;
+	spec.freq = 44100;
+	spec.format = AUDIO_S16SYS; // 16-bit signed audio
+	spec.channels = 1;			// Mono sound
+	spec.samples = 4096;		// Buffer size
+	spec.callback = audioCallback;
+	spec.userdata = 0;
+
+	if (SDL_OpenAudio(&spec, nullptr) < 0)
+	{
+		fprintf(stderr, "Opening audio: %s\n", SDL_GetError());
+	} else{
+		SDL_PauseAudio(1);
+	}
+
 
 	Platform::originalCwd = Platform::GetCwd();
 

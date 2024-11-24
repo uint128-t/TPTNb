@@ -443,4 +443,5 @@ void EngineProcess()
 		frameStart = std::max(frameStart, frameStartTimeBlock * timeBlockDuration);
 		SDL_Delay((frameStart - now) / UINT64_C(1'000'000));
 	}
+	// printf("loop\n");
 }
