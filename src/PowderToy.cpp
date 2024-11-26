@@ -246,7 +246,6 @@ static std::unique_ptr<ExplicitSingletons> explicitSingletons;
 
 unsigned long long audt = 0;
 
-bool soundEnabled = true;
 double sndfreq[SND_MAX] = {};
 unsigned long long sndtime[SND_MAX] = {};
 bool pauseAudio = false;
@@ -305,7 +304,7 @@ int Main(int argc, char *argv[])
 	spec.freq = 44100;
 	spec.format = AUDIO_S16SYS; // 16-bit signed audio
 	spec.channels = 1;			// Mono sound
-	spec.samples = 4096;		// Buffer size
+	spec.samples = 1024;		// Buffer size
 	spec.callback = audioCallback;
 	spec.userdata = 0;
 

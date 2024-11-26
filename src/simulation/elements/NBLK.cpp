@@ -83,8 +83,7 @@ static int update(UPDATE_FUNC_ARGS)
 				break;
 			}
 		}
-		// don't play a sound if all playing
-		SDL_PauseAudio(0);
+		// Main loop will automatically unpause SDL Audio
 	}
 	return 0;
 }

@@ -6,6 +6,7 @@
 #include "graphics/Graphics.h"
 #include "common/platform/Platform.h"
 #include "common/clipboard/Clipboard.h"
+#include "simulation/Audio.h"
 #include <iostream>
 
 int desktopWidth = 1280;
@@ -423,6 +424,15 @@ void EngineProcess()
 
 	engine.Tick();
 
+	bool playSound = false;
+	for (int sn=0;sn<SND_MAX;sn++){
+		if (sndtime[sn]>audt){
+			playSound = true;
+			break;
+		}
+	}
+	SDL_PauseAudio(!playSound || pauseAudio);
+
 	auto fpsLimit = ui::Engine::Ref().GetFpsLimit();
 	int drawcap = ui::Engine::Ref().GetDrawingFrequencyLimit();
 	if (!drawcap || drawingTimer > 1e9f / drawcap)
@@ -443,5 +453,4 @@ void EngineProcess()
 		frameStart = std::max(frameStart, frameStartTimeBlock * timeBlockDuration);
 		SDL_Delay((frameStart - now) / UINT64_C(1'000'000));
 	}
-	// printf("loop\n");
 }
